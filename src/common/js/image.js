@@ -1,6 +1,7 @@
 export default class ImageClass {
   constructor ({ctx, option}) {
     this.ctx = ctx
+    this.id = option.id
     this.url = option.url
     this.width = option.width
     this.height = option.height
@@ -14,9 +15,24 @@ export default class ImageClass {
       if (!image) return
       // 获取成功
       this.ctx.beginPath()
-      this.ctx.drawImage(image, this.x, this.y, this.width, this.height)
+      const x = this.x - this.width / 2
+      const y = this.y - this.height / 2
+      this.ctx.drawImage(image, x, y, this.width, this.height)
       this.ctx.closePath()
     })
+  }
+
+  checkPos (currentX, currentY) {
+    const xMin = this.x - this.width / 2
+    const xMax = this.x + this.width / 2
+    const yMin = this.y - this.height / 2
+    const yMax = this.y + this.height / 2
+    return currentX >= xMin && currentX <= xMax && currentY >= yMin && currentY <= yMax
+  }
+
+  move (disX, disY) {
+    this.x += disX
+    this.y += disY
   }
 }
 
