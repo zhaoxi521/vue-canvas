@@ -81,7 +81,7 @@ export default {
 
 <style scoped lang="stylus">
   .menu-container
-    width 30%
+    width 20%
     height 100%
     box-sizing border-box
     padding 5px 0
