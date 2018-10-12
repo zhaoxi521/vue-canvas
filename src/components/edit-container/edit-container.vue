@@ -19,6 +19,7 @@ export default {
 
 <style scoped lang="stylus">
   .edit-container
+    position relative
     width 100%
     height 100%
     padding 50px 100px
@@ -26,5 +27,5 @@ export default {
     display flex
     justify-content space-around
     align-items center
-    background linear-gradient(70deg, bisque, #FFFCC8);
+    background-color #eee
 </style>

@@ -163,10 +163,10 @@ export default {
 
 <style scoped lang="stylus">
   .canvas-container
-    width 70%
+    width 100%
     height 100%
     background-color #eee
-    box-shadow 5px 5px 5px #aaa
+    box-shadow 0 0 10px 5px #aaa
     position relative
     .handle
       width 100%
