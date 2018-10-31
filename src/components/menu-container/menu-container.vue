@@ -73,12 +73,12 @@ export default {
   created () {
     this.list = [
       {
-        url: encodeURI('http://localhost:3000/images/安全阀.png'),
+        url: encodeURI('/static/images/安全阀.png'),
         width: 48,
         height: 111
       },
       {
-        url: encodeURI('http://localhost:3000/images/火灾报警控制器.png'),
+        url: encodeURI('/static/images/火灾报警控制器.png'),
         width: 219,
         height: 296
       }
