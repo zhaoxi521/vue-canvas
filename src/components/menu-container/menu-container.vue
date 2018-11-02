@@ -7,7 +7,7 @@
         <img draggable="true"
              class="item-img"
              @dragstart="dragStart(t)"
-             @dragend="dragEng"
+             @dragend="dragEnd"
              :src="t.url"
              :style="resetStyle(t)">
       </li>
@@ -37,7 +37,7 @@ export default {
     dragStart (t) {
       this.updateSelectedData(t)
     },
-    dragEng () {
+    dragEnd () {
       this.updateSelectedData(null)
     },
     resetStyle (item) {
