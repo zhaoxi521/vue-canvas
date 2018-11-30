@@ -7,8 +7,8 @@ export default class ImageClass {
     this.height = option.height
     this.x = option.x
     this.y = option.y
-    this.scaleNum = 1
     this.selected = false
+    this.borderVal = 10
   }
 
   draw () {
@@ -26,11 +26,32 @@ export default class ImageClass {
   }
 
   checkPos (currentX, currentY) {
-    const xMin = this.x - this.width * this.scaleNum / 2
-    const xMax = this.x + this.width * this.scaleNum / 2
-    const yMin = this.y - this.height * this.scaleNum / 2
-    const yMax = this.y + this.height * this.scaleNum / 2
+    const NUM = this.selected ? 15 : 0
+    const xMin = this.x - this.width / 2 - NUM
+    const xMax = this.x + this.width / 2 + NUM
+    const yMin = this.y - this.height / 2 - NUM
+    const yMax = this.y + this.height / 2 + NUM
     return currentX >= xMin && currentX <= xMax && currentY >= yMin && currentY <= yMax
+  }
+
+  checkPosPoint (currentX, currentY) {
+    const NUM = this.selected ? 15 : 0
+    const xMin = this.x - this.width / 2 - NUM
+    const xMax = this.x + this.width / 2 + NUM
+    const yMin = this.y - this.height / 2 - NUM
+    const yMax = this.y + this.height / 2 + NUM
+    if ((currentX - xMin <= 10) && yMin < currentY < yMax) {
+      return 'left'
+    }
+    if ((currentY - yMin <= 10) && yMin < currentY < yMax) {
+      return 'top'
+    }
+    if ((xMax - currentX) <= 10 && yMin < currentY < yMax) {
+      return 'right'
+    }
+    if ((yMax - currentY <= 10) && xMin < currentX < xMax) {
+      return 'bottom'
+    }
   }
 
   move (disX, disY) {
@@ -38,57 +59,81 @@ export default class ImageClass {
     this.y += disY
   }
 
-  scale (flag) {
-    if (flag) {
-      this.scaleNum += 0.01
-    } else {
-      this.scaleNum -= 0.01
-    }
-  }
-
   drawImage (image) {
-    const x = this.x - this.width * this.scaleNum / 2
-    const y = this.y - this.height * this.scaleNum / 2
-    this.ctx.drawImage(image, x, y, this.width * this.scaleNum, this.height * this.scaleNum)
+    const x = this.x - this.width / 2
+    const y = this.y - this.height / 2
+    this.ctx.drawImage(image, x, y, this.width, this.height)
   }
 
   drawBorder () {
-    const NUM = 15
-    const xMin = this.x - this.width * this.scaleNum / 2 - NUM
-    const xMax = this.x + this.width * this.scaleNum / 2 + NUM
-    const yMin = this.y - this.height * this.scaleNum / 2 - NUM
-    const yMax = this.y + this.height * this.scaleNum / 2 + NUM
+    const NUM = this.borderVal
+    const xMin = this.x - this.width / 2 - NUM
+    const xMax = this.x + this.width / 2 + NUM
+    const yMin = this.y - this.height / 2 - NUM
+    const yMax = this.y + this.height / 2 + NUM
+    const w = 5
     this.ctx.lineWidth = '2'
     this.ctx.strokeStyle = '#838383'
-    for (let x = xMin; x <= xMax; x++) {
-      if (x % 10 <= 5) {
-        this.ctx.lineTo(x, yMin)
-      } else {
-        this.ctx.moveTo(x, yMin)
-      }
-    }
-    for (let y = yMin; y <= yMax; y++) {
-      if (y % 10 <= 5) {
-        this.ctx.lineTo(xMax, y)
-      } else {
-        this.ctx.moveTo(xMax, y)
-      }
-    }
-    for (let x = xMax; x >= xMin; x--) {
-      if (x % 10 <= 5) {
-        this.ctx.lineTo(x, yMax)
-      } else {
-        this.ctx.moveTo(x, yMax)
-      }
-    }
-    for (let y = yMax; y >= yMin; y--) {
-      if (y % 10 <= 5) {
-        this.ctx.lineTo(xMin, y)
-      } else {
-        this.ctx.moveTo(xMin, y)
-      }
-    }
+
+    this.drawLine(xMin, xMax, yMin, yMax)
+    this.drawRect(xMin, xMax, yMin, yMax, w)
+  }
+
+  drawLine (xMin, xMax, yMin, yMax) {
+    // 从左上角开始画
+    // 1
+    this.drawLineSimple(xMin, xMax, yMin, 'x')
+    // 2
+    this.drawLineSimple(yMin, yMax, xMax, 'y')
+    // 3
+    this.drawLineSimple(xMax, xMin, yMax, 'x')
+    // 4
+    this.drawLineSimple(yMax, yMin, xMin, 'y')
+
     this.ctx.stroke()
+  }
+
+  drawRect (xMin, xMax, yMin, yMax, w) {
+    // 从左上角开始画
+    // 1
+    this.drawRectSimple(xMin - w, yMin - w, 2 * w)
+    this.drawRectSimple((xMax - xMin) / 2 + xMin - w, yMin - w, 2 * w)
+    // 2
+    this.drawRectSimple(xMax - w, yMin - w, 2 * w)
+    this.drawRectSimple(xMax - w, (yMax - yMin) / 2 + yMin - w, 2 * w)
+    // 3
+    this.drawRectSimple(xMax - w, yMax - w, 2 * w)
+    this.drawRectSimple((xMax - xMin) / 2 + xMin - w, yMax - w, 2 * w)
+    // 4
+    this.drawRectSimple(xMin - w, yMax - w, 2 * w)
+    this.drawRectSimple(xMin - w, (yMax - yMin) / 2 + yMin - w, 2 * w)
+  }
+
+  drawLineSimple (a, b, fixed, direction) {
+    if (a > b) {
+      for (let m = a; m >= b; m--) {
+        const resetM = m - a
+        if (resetM % 10 >= -5) {
+          direction === 'x' ? this.ctx.lineTo(m, fixed) : this.ctx.lineTo(fixed, m)
+        } else {
+          direction === 'x' ? this.ctx.moveTo(m, fixed) : this.ctx.moveTo(fixed, m)
+        }
+      }
+    } else {
+      for (let m = a; m <= b; m++) {
+        const resetM = m - a
+        if (resetM % 10 <= 5) {
+          direction === 'x' ? this.ctx.lineTo(m, fixed) : this.ctx.lineTo(fixed, m)
+        } else {
+          direction === 'x' ? this.ctx.moveTo(m, fixed) : this.ctx.moveTo(fixed, m)
+        }
+      }
+    }
+  }
+
+  drawRectSimple (x, y, w) {
+    this.ctx.rect(x, y, w, w)
+    this.ctx.fill()
   }
 }
 
