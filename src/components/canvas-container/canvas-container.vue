@@ -106,7 +106,7 @@ export default {
         this.selectedImage = selectedImage
       } else {
         // 判断已选中的元素是否要进行缩放
-        this.scaleState = this.selectedImage.checkPosPoint(currentX, currentY)
+        this.scaleState = this.selectedImage ? this.selectedImage.checkPosPoint(currentX, currentY) : false
       }
       this.selectedState = true
       // 如果没有选中元素
@@ -132,22 +132,22 @@ export default {
         })
       } else {
         if (this.scaleState) {
-          const newDisX = Math.abs(disX)
-          const newDisY = Math.abs(disY)
           switch (this.scaleState) {
             case 'left':
-              this.selectedImage.width += newDisX
-              this.selectedImage.x -= newDisX
+              this.selectedImage.width -= disX
+              this.selectedImage.x += disX / 2
               break
             case 'right':
-              this.selectedImage.width += newDisX
+              this.selectedImage.width += disX
+              this.selectedImage.x += disX / 2
               break
             case 'top':
-              this.selectedImage.height += newDisY
-              this.selectedImage.y -= newDisY
+              this.selectedImage.height -= disY
+              this.selectedImage.y += disY / 2
               break
             case 'bottom':
-              this.selectedImage.height += newDisY
+              this.selectedImage.height += disY
+              this.selectedImage.y += disY / 2
               break
           }
         } else {
