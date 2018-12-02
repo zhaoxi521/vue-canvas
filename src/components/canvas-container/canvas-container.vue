@@ -1,5 +1,6 @@
 <template>
   <div class="canvas-container">
+    <div class="handle" @click="resetMap">还原</div>
     <div class="wrapper">
       <canvas class="canvas" ref="canvas" @wheel="wheel" @mousedown.prevent="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp"
               @dragover.prevent @drop.prevent="drop"></canvas>
@@ -80,6 +81,10 @@ export default {
           t.x = t.x * scale - offsetX
           t.y = t.y * scale - offsetY
         })
+        // 保存当前变化的值
+        this.currentScale = this.currentScale * scale
+        this.currentMoveX = this.currentMoveX * scale - offsetX
+        this.currentMoveY = this.currentMoveY * scale - offsetY
       } else {
         // 缩小
         this.backImageList.forEach(t => {
@@ -88,6 +93,10 @@ export default {
           t.x = (t.x + offsetX) / scale
           t.y = (t.y + offsetY) / scale
         })
+        // 保存当前变化的值
+        this.currentScale = this.currentScale / scale
+        this.currentMoveX = (this.currentMoveX + offsetX) / scale
+        this.currentMoveY = (this.currentMoveY + offsetY) / scale
       }
       // 渲染
       this.draw()
@@ -130,6 +139,8 @@ export default {
         this.backImageList.forEach(t => {
           t.move(disX, disY)
         })
+        this.currentMoveX += disX
+        this.currentMoveY += disY
       } else {
         if (this.scaleState) {
           switch (this.scaleState) {
@@ -160,6 +171,18 @@ export default {
     mouseUp () {
       this.selectedState = false
       this.scaleState = null
+    },
+    resetMap () {
+      this.backImageList.forEach(t => {
+        t.width = t.width / this.currentScale
+        t.height = t.height / this.currentScale
+        t.x = (t.x - this.currentMoveX) / this.currentScale
+        t.y = (t.y - this.currentMoveY) / this.currentScale
+      })
+      this.currentScale = 1
+      this.currentMoveX = 0
+      this.currentMoveY = 0
+      this.draw()
     },
     drop (e) {
       this.removeImageSelected()
@@ -198,6 +221,17 @@ export default {
     background-color #eee
     box-shadow 0 0 10px 5px #aaa
     position relative
+    .handle
+      position absolute
+      left 0
+      top -30px
+      width 80px
+      height 30px
+      line-height 30px
+      text-align center
+      background aqua
+      border-radius 5px
+      cursor pointer
     .wrapper
       position absolute
       left 0
