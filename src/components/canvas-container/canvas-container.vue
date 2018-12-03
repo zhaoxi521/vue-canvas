@@ -2,7 +2,9 @@
   <div class="canvas-container">
     <div class="handle" @click="resetMap">还原</div>
     <div class="wrapper">
-      <canvas class="canvas" ref="canvas" @wheel="wheel" @mousedown.prevent="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp"
+      <canvas class="canvas" ref="canvas" :style="{cursor: scaleStyle}"
+              @wheel="wheel"
+              @mousedown.prevent="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp"
               @dragover.prevent @drop.prevent="drop"></canvas>
     </div>
   </div>
@@ -25,6 +27,11 @@ export default {
     scaleVal: {
       type: Number,
       default: 0.1
+    }
+  },
+  data () {
+    return {
+      scaleStyle: ''
     }
   },
   computed: {
@@ -127,8 +134,15 @@ export default {
       this.draw()
     },
     mouseMove (e) {
-      // 没有选中元素
-      if (!this.selectedState) return
+      // 鼠标按下，才能移动的操作开关
+      if (!this.selectedState) {
+        // 改变选中元素的悬浮在上面鼠标样式
+        const currentX = e.offsetX
+        const currentY = e.offsetY
+        const scaleState = this.selectedImage ? this.selectedImage.checkPosPoint(currentX, currentY) : ''
+        this.resetMouseStyle(scaleState.length)
+        return
+      }
       // 选中元素
       const currentX = e.offsetX
       const currentY = e.offsetY
@@ -200,6 +214,44 @@ export default {
         }
       }))
       this.draw()
+    },
+    resetMouseStyle (len) {
+      switch (len) {
+        // top
+        case 3:
+          this.scaleStyle = 'n-resize'
+          break
+        // left
+        case 4:
+          this.scaleStyle = 'w-resize'
+          break
+        // right
+        case 5:
+          this.scaleStyle = 'e-resize'
+          break
+        // bottom
+        case 6:
+          this.scaleStyle = 's-resize'
+          break
+        // topleft
+        case 7:
+          this.scaleStyle = 'nw-resize'
+          break
+        // topright
+        case 8:
+          this.scaleStyle = 'ne-resize'
+          break
+        // bottomleft
+        case 10:
+          this.scaleStyle = 'sw-resize'
+          break
+        // bottomright
+        case 11:
+          this.scaleStyle = 'se-resize'
+          break
+        default:
+          this.scaleStyle = 'default'
+      }
     },
     resize () {
       window.onresize = () => {

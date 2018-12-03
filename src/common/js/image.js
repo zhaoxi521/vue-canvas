@@ -9,20 +9,29 @@ export default class ImageClass {
     this.y = option.y
     this.selected = false
     this.borderVal = 10
+    this.image = null
   }
 
   draw () {
+    if (this.image !== null) {
+      this.drawHandle(this.image)
+      return
+    }
     getImage(this.url).then(image => {
       // 如果获取失败
       if (!image) return
       // 获取成功
-      this.ctx.beginPath()
-      this.ctx.save()
-      this.drawImage(image)
-      this.selected && this.drawBorder()
-      this.ctx.restore()
-      this.ctx.closePath()
+      this.drawHandle(image)
     })
+  }
+
+  drawHandle (image) {
+    this.ctx.beginPath()
+    this.ctx.save()
+    this.drawImage(image)
+    this.selected && this.drawBorder()
+    this.ctx.restore()
+    this.ctx.closePath()
   }
 
   checkPos (currentX, currentY) {
@@ -36,22 +45,24 @@ export default class ImageClass {
 
   checkPosPoint (currentX, currentY) {
     let state = ''
-    const NUM = this.selected ? 15 : 0
+    const NUM = 15
     const xMin = this.x - this.width / 2 - NUM
     const xMax = this.x + this.width / 2 + NUM
     const yMin = this.y - this.height / 2 - NUM
     const yMax = this.y + this.height / 2 + NUM
-    if ((currentX - xMin <= 10) && yMin < currentY < yMax) {
-      state += 'left'
-    }
-    if ((currentY - yMin <= 10) && yMin < currentY < yMax) {
-      state += 'top'
-    }
-    if ((xMax - currentX) <= 10 && yMin < currentY < yMax) {
-      state += 'right'
-    }
-    if ((yMax - currentY <= 10) && xMin < currentX < xMax) {
-      state += 'bottom'
+    if (currentX >= xMin && currentX <= xMax && currentY >= yMin && currentY <= yMax) {
+      if ((currentX - xMin <= 10) && yMin < currentY < yMax) {
+        state += 'left'
+      }
+      if ((currentY - yMin <= 10) && yMin < currentY < yMax) {
+        state += 'top'
+      }
+      if ((xMax - currentX) <= 10 && yMin < currentY < yMax) {
+        state += 'right'
+      }
+      if ((yMax - currentY <= 10) && xMin < currentX < xMax) {
+        state += 'bottom'
+      }
     }
     return state
   }
