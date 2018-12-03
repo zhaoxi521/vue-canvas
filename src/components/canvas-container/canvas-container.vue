@@ -80,6 +80,8 @@ export default {
       const offsetY = e.offsetY * this.scaleVal
       const scale = 1 + this.scaleVal
       // 更改所有图形对象的数据
+      // 先清空画布
+      this.clearRect()
       if (e.deltaY < 0) {
         // 放大
         this.backImageList.forEach(t => {
@@ -87,6 +89,7 @@ export default {
           t.height = t.height * scale
           t.x = t.x * scale - offsetX
           t.y = t.y * scale - offsetY
+          t.draw()
         })
         // 保存当前变化的值
         this.currentScale = this.currentScale * scale
@@ -99,14 +102,13 @@ export default {
           t.height = t.height / scale
           t.x = (t.x + offsetX) / scale
           t.y = (t.y + offsetY) / scale
+          t.draw()
         })
         // 保存当前变化的值
         this.currentScale = this.currentScale / scale
         this.currentMoveX = (this.currentMoveX + offsetX) / scale
         this.currentMoveY = (this.currentMoveY + offsetY) / scale
       }
-      // 渲染
-      this.draw()
     },
     mouseDown (e) {
       // 整理数据
@@ -189,20 +191,23 @@ export default {
       this.scaleState = null
     },
     resetMap () {
+      // 先清空画布
+      this.clearRect()
+      // 更改数据，并渲染
       this.backImageList.forEach(t => {
         t.width = t.width / this.currentScale
         t.height = t.height / this.currentScale
         t.x = (t.x - this.currentMoveX) / this.currentScale
         t.y = (t.y - this.currentMoveY) / this.currentScale
+        t.draw()
       })
       this.currentScale = 1
       this.currentMoveX = 0
       this.currentMoveY = 0
-      this.draw()
     },
     drop (e) {
       this.removeImageSelected()
-      this.backImageList.push(new ImageClass({
+      const image = new ImageClass({
         ctx: this.ctx,
         option: {
           id: new Date().getTime(),
@@ -212,8 +217,9 @@ export default {
           x: e.offsetX,
           y: e.offsetY
         }
-      }))
-      this.draw()
+      })
+      this.backImageList.push(image)
+      image.draw()
     },
     resetMouseStyle (len) {
       switch (len) {
