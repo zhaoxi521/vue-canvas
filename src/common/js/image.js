@@ -35,23 +35,25 @@ export default class ImageClass {
   }
 
   checkPosPoint (currentX, currentY) {
+    let state = ''
     const NUM = this.selected ? 15 : 0
     const xMin = this.x - this.width / 2 - NUM
     const xMax = this.x + this.width / 2 + NUM
     const yMin = this.y - this.height / 2 - NUM
     const yMax = this.y + this.height / 2 + NUM
     if ((currentX - xMin <= 10) && yMin < currentY < yMax) {
-      return 'left'
+      state += 'left'
     }
     if ((currentY - yMin <= 10) && yMin < currentY < yMax) {
-      return 'top'
+      state += 'top'
     }
     if ((xMax - currentX) <= 10 && yMin < currentY < yMax) {
-      return 'right'
+      state += 'right'
     }
     if ((yMax - currentY <= 10) && xMin < currentX < xMax) {
-      return 'bottom'
+      state += 'bottom'
     }
+    return state
   }
 
   move (disX, disY) {

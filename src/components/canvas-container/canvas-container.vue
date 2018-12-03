@@ -143,23 +143,25 @@ export default {
         this.currentMoveY += disY
       } else {
         if (this.scaleState) {
-          switch (this.scaleState) {
-            case 'left':
-              this.selectedImage.width -= disX
-              this.selectedImage.x += disX / 2
-              break
-            case 'right':
-              this.selectedImage.width += disX
-              this.selectedImage.x += disX / 2
-              break
-            case 'top':
-              this.selectedImage.height -= disY
-              this.selectedImage.y += disY / 2
-              break
-            case 'bottom':
-              this.selectedImage.height += disY
-              this.selectedImage.y += disY / 2
-              break
+          // 左侧
+          if (this.scaleState.indexOf('left') !== -1) {
+            this.selectedImage.width -= disX
+            this.selectedImage.x += disX / 2
+          }
+          // 右侧
+          if (this.scaleState.indexOf('right') !== -1) {
+            this.selectedImage.width += disX
+            this.selectedImage.x += disX / 2
+          }
+          // 上
+          if (this.scaleState.indexOf('top') !== -1) {
+            this.selectedImage.height -= disY
+            this.selectedImage.y += disY / 2
+          }
+          // 下
+          if (this.scaleState.indexOf('bottom') !== -1) {
+            this.selectedImage.height += disY
+            this.selectedImage.y += disY / 2
           }
         } else {
           this.selectedImage.move(disX, disY)
