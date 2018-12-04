@@ -59,10 +59,15 @@ export default {
       this.width = this.ele.width = this.ele.offsetWidth
       this.height = this.ele.height = this.ele.offsetHeight
     },
-    draw () {
+    draw (cb) {
       // 先清空画布
       this.clearRect()
-      // 画图
+      // 自己操作画图
+      if (cb) {
+        cb()
+        return
+      }
+      // 默认操作画图
       this.backImageList.forEach(t => t.draw())
     },
     clearRect () {
@@ -71,6 +76,7 @@ export default {
     removeImageSelected () {
       if (!this.selectedImage) return
       this.selectedImage.selected = false
+      this.selectedImage = null
       this.draw()
     },
     wheel (e) {
@@ -80,126 +86,127 @@ export default {
       const offsetY = e.offsetY * this.scaleVal
       const scale = 1 + this.scaleVal
       // 更改所有图形对象的数据
-      // 先清空画布
-      this.clearRect()
-      if (e.deltaY < 0) {
-        // 放大
+      this.draw(() => {
+        const flag = e.deltaY < 0
         this.backImageList.forEach(t => {
-          t.width = t.width * scale
-          t.height = t.height * scale
-          t.x = t.x * scale - offsetX
-          t.y = t.y * scale - offsetY
+          t.width = flag ? this.countEnlarge(t.width, scale) : this.countNarrow(t.width, scale)
+          t.height = flag ? this.countEnlarge(t.height, scale) : this.countNarrow(t.height, scale)
+          t.x = flag ? this.countEnlargeAndMove(t.x, scale, offsetX) : this.countNarrowAndMove(t.x, scale, offsetX)
+          t.y = flag ? this.countEnlargeAndMove(t.y, scale, offsetY) : this.countNarrowAndMove(t.y, scale, offsetY)
           t.draw()
         })
         // 保存当前变化的值
-        this.currentScale = this.currentScale * scale
-        this.currentMoveX = this.currentMoveX * scale - offsetX
-        this.currentMoveY = this.currentMoveY * scale - offsetY
-      } else {
-        // 缩小
-        this.backImageList.forEach(t => {
-          t.width = t.width / scale
-          t.height = t.height / scale
-          t.x = (t.x + offsetX) / scale
-          t.y = (t.y + offsetY) / scale
-          t.draw()
-        })
-        // 保存当前变化的值
-        this.currentScale = this.currentScale / scale
-        this.currentMoveX = (this.currentMoveX + offsetX) / scale
-        this.currentMoveY = (this.currentMoveY + offsetY) / scale
-      }
+        this.currentScale = flag ? this.countEnlarge(this.currentScale, scale) : this.countNarrow(this.currentScale, scale)
+        this.currentMoveX = flag ? this.countEnlargeAndMove(this.currentMoveX, scale, offsetX) : this.countNarrowAndMove(this.currentMoveX, scale, offsetX)
+        this.currentMoveY = flag ? this.countEnlargeAndMove(this.currentMoveY, scale, offsetY) : this.countNarrowAndMove(this.currentMoveY, scale, offsetY)
+      })
     },
     mouseDown (e) {
+      // 鼠标按下以及后续操作的标识
+      this.mouseDownState = true
       // 整理数据
       const currentX = e.offsetX
       const currentY = e.offsetY
       this.imageMoveStart = {x: currentX, y: currentY}
       // 检查是否有选中元素
-      const selectedImageList = this.backImageList.filter(t => t.checkPos(currentX, currentY))
-      const selectedImage = selectedImageList.length === 0 ? null : selectedImageList[selectedImageList.length - 1]
-      if (selectedImage !== this.selectedImage) {
-        // 清除选中状态
-        this.removeImageSelected()
-        this.selectedImage = selectedImage
-      } else {
-        // 判断已选中的元素是否要进行缩放
-        this.scaleState = this.selectedImage ? this.selectedImage.checkPosPoint(currentX, currentY) : false
+      let selectedImageListOther = []
+      let selectedImage = null
+      const len = this.backImageList.length - 1
+      for (let i = len; i >= 0; i--) {
+        let t = this.backImageList[i]
+        if (!selectedImage && t.checkPos(currentX, currentY)) {
+          selectedImage = t
+        } else {
+          selectedImageListOther.push(t)
+        }
       }
-      this.selectedState = true
-      // 如果没有选中元素
-      if (!this.selectedImage) return
-      // 有选中元素
-      this.selectedImage.selected = true
-      const selectedImageListOther = this.backImageList.filter(t => t.id !== this.selectedImage.id)
-      this.backImageList = [...selectedImageListOther, this.selectedImage]
+      // 确定选择区域
+      if (!selectedImage) {
+        // 选中空白区
+        this.removeImageSelected()
+      } else {
+        // 选中元素，确定是否要缩放还是拖动
+        this.scaleState = selectedImage.checkPosPoint(currentX, currentY)
+        // 清除上一个选中元素的样式
+        this.selectedImage && this.selectedImage !== selectedImage && (this.selectedImage.selected = false)
+        selectedImage.selected = true
+        this.selectedImage = selectedImage
+      }
+      this.backImageList = this.selectedImage ? [...selectedImageListOther, this.selectedImage] : selectedImageListOther
       this.draw()
     },
     mouseMove (e) {
+      const currentX = e.offsetX
+      const currentY = e.offsetY
       // 鼠标按下，才能移动的操作开关
-      if (!this.selectedState) {
+      if (!this.mouseDownState) {
         // 改变选中元素的悬浮在上面鼠标样式
-        const currentX = e.offsetX
-        const currentY = e.offsetY
         const scaleState = this.selectedImage ? this.selectedImage.checkPosPoint(currentX, currentY) : ''
         this.resetMouseStyle(scaleState.length)
         return
       }
       // 选中元素
-      const currentX = e.offsetX
-      const currentY = e.offsetY
       const disX = currentX - this.imageMoveStart.x
       const disY = currentY - this.imageMoveStart.y
+      // 保存当前值
+      this.imageMoveStart = {x: currentX, y: currentY}
       // 如果没有选中元素
       if (!this.selectedImage) {
-        this.backImageList.forEach(t => {
-          t.move(disX, disY)
+        this.draw(() => {
+          this.backImageList.forEach(t => {
+            t.move(disX, disY)
+            t.draw()
+          })
+          this.currentMoveX += disX
+          this.currentMoveY += disY
         })
-        this.currentMoveX += disX
-        this.currentMoveY += disY
-      } else {
-        if (this.scaleState) {
-          // 左侧
-          if (this.scaleState.indexOf('left') !== -1) {
-            this.selectedImage.width -= disX
-            this.selectedImage.x += disX / 2
-          }
-          // 右侧
-          if (this.scaleState.indexOf('right') !== -1) {
-            this.selectedImage.width += disX
-            this.selectedImage.x += disX / 2
-          }
-          // 上
-          if (this.scaleState.indexOf('top') !== -1) {
-            this.selectedImage.height -= disY
-            this.selectedImage.y += disY / 2
-          }
-          // 下
-          if (this.scaleState.indexOf('bottom') !== -1) {
-            this.selectedImage.height += disY
-            this.selectedImage.y += disY / 2
-          }
-        } else {
-          this.selectedImage.move(disX, disY)
-        }
+        return
       }
+      // 选中元素--进行拖拽
+      if (this.scaleState) {
+        this.dragScale(disX, disY)
+        this.draw()
+        return
+      }
+      // 选中元素，元素移动
+      this.selectedImage.move(disX, disY)
       this.draw()
-      this.imageMoveStart = {x: currentX, y: currentY}
     },
     mouseUp () {
-      this.selectedState = false
-      this.scaleState = null
+      this.mouseDownState = false
+      this.scaleState = ''
+    },
+    dragScale (disX, disY) {
+      // 左侧
+      if (this.scaleState.indexOf('left') !== -1) {
+        this.selectedImage.width -= disX
+        this.selectedImage.x += disX / 2
+      }
+      // 右侧
+      if (this.scaleState.indexOf('right') !== -1) {
+        this.selectedImage.width += disX
+        this.selectedImage.x += disX / 2
+      }
+      // 上
+      if (this.scaleState.indexOf('top') !== -1) {
+        this.selectedImage.height -= disY
+        this.selectedImage.y += disY / 2
+      }
+      // 下
+      if (this.scaleState.indexOf('bottom') !== -1) {
+        this.selectedImage.height += disY
+        this.selectedImage.y += disY / 2
+      }
     },
     resetMap () {
-      // 先清空画布
-      this.clearRect()
-      // 更改数据，并渲染
-      this.backImageList.forEach(t => {
-        t.width = t.width / this.currentScale
-        t.height = t.height / this.currentScale
-        t.x = (t.x - this.currentMoveX) / this.currentScale
-        t.y = (t.y - this.currentMoveY) / this.currentScale
-        t.draw()
+      this.draw(() => {
+        this.backImageList.forEach(t => {
+          t.width = this.countNarrow(t.width, this.currentScale)
+          t.height = this.countNarrow(t.height, this.currentScale)
+          t.x = this.countNarrowAndMove(t.x, this.currentScale, -this.currentMoveX)
+          t.y = this.countNarrowAndMove(t.y, this.currentScale, -this.currentMoveY)
+          t.draw()
+        })
       })
       this.currentScale = 1
       this.currentMoveX = 0
@@ -264,6 +271,18 @@ export default {
         this.initCanvas()
         this.draw()
       }
+    },
+    countEnlarge (val, scale) {
+      return val * scale
+    },
+    countEnlargeAndMove (val, scale, offset) {
+      return val * scale - offset
+    },
+    countNarrow (val, scale) {
+      return val / scale
+    },
+    countNarrowAndMove (val, scale, offset) {
+      return (val + offset) / scale
     }
   },
   mounted () {
