@@ -16,14 +16,6 @@ import ImageClass from 'common/js/image'
 export default {
   name: 'canvas-container',
   props: {
-    defaultWidth: {
-      type: Number,
-      default: 1000
-    },
-    defaultHeight: {
-      type: Number,
-      default: 1000
-    },
     scaleVal: {
       type: Number,
       default: 0.1
