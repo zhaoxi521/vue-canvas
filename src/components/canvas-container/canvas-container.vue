@@ -124,15 +124,15 @@ export default {
       if (!selectedImage) {
         // 选中空白区
         this.removeImageSelected()
-      } else {
-        // 选中元素，确定是否要缩放还是拖动
-        this.scaleState = selectedImage.checkPosPoint(currentX, currentY)
-        // 清除上一个选中元素的样式
-        this.selectedImage && this.selectedImage !== selectedImage && (this.selectedImage.selected = false)
-        selectedImage.selected = true
-        this.selectedImage = selectedImage
+        return
       }
-      this.backImageList = this.selectedImage ? [...selectedImageListOther, this.selectedImage] : selectedImageListOther
+      // 选中元素，确定是否要缩放还是拖动
+      this.scaleState = selectedImage.checkPosPoint(currentX, currentY)
+      // 清除上一个选中元素的样式
+      this.selectedImage && this.selectedImage !== selectedImage && (this.selectedImage.selected = false)
+      selectedImage.selected = true
+      this.selectedImage = selectedImage
+      this.backImageList = [...selectedImageListOther, this.selectedImage]
       this.draw()
     },
     mouseMove (e) {
