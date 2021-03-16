@@ -1,7 +1,7 @@
 # vue-canvas
 
 > A Vue.js project
-project
+
 
 ## Build Setup
 
